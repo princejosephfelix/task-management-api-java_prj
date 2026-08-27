@@ -1,0 +1,14 @@
+package com.example.taskmanagement.service;
+import com.example.taskmanagement.dto.TaskDtos.*; import com.example.taskmanagement.model.TaskItem; import com.example.taskmanagement.repository.*; import org.springframework.data.domain.*; import org.springframework.stereotype.Service; import java.util.Locale;
+@Service public class TaskService{
+ private final TaskRepository tasks; private final UserRepository users; public TaskService(TaskRepository t,UserRepository u){tasks=t;users=u;}
+ public TaskResponse create(Long uid,CreateTaskRequest r){TaskItem t=new TaskItem();t.setTitle(r.title());t.setDescription(r.description());t.setPriority(priority(r.priority()));t.setOwner(users.findById(uid).orElseThrow(()->new IllegalArgumentException("User not found.")));return out(tasks.save(t));}
+ public PagedResult<TaskResponse> list(Long uid,boolean admin,int page,int size,String status,String priority,String search,String sortBy,String sortOrder){page=Math.max(1,page);size=Math.min(Math.max(1,size),100);String sort=switch(sortBy==null?"":sortBy){case "title"->"title";case "updated_at"->"updatedAt";default->"createdAt";};Sort.Direction dir="asc".equalsIgnoreCase(sortOrder)?Sort.Direction.ASC:Sort.Direction.DESC;Page<TaskItem> p=tasks.search(uid,admin,blank(status),blank(priority),blank(search),PageRequest.of(page-1,size,Sort.by(dir,sort)));return new PagedResult<>(p.getContent().stream().map(this::out).toList(),page,size,p.getTotalElements(),p.getTotalPages());}
+ public TaskResponse get(Long id,Long uid,boolean admin){TaskItem t=tasks.findById(id).orElse(null);return t==null||(!admin&&!t.getOwner().getId().equals(uid))?null:out(t);}
+ public TaskResponse update(Long id,Long uid,boolean admin,UpdateTaskRequest r){TaskItem t=tasks.findById(id).orElse(null);if(t==null||(!admin&&!t.getOwner().getId().equals(uid)))return null;if(r.title()!=null)t.setTitle(r.title());if(r.description()!=null)t.setDescription(r.description());if(r.status()!=null)t.setStatus(status(r.status()));if(r.priority()!=null)t.setPriority(priority(r.priority()));return out(tasks.save(t));}
+ public boolean delete(Long id,Long uid,boolean admin){TaskItem t=tasks.findById(id).orElse(null);if(t==null||(!admin&&!t.getOwner().getId().equals(uid)))return false;tasks.delete(t);return true;}
+ private TaskResponse out(TaskItem t){return new TaskResponse(t.getId(),t.getTitle(),t.getDescription(),t.getStatus(),t.getPriority(),t.getOwner().getId(),t.getCreatedAt(),t.getUpdatedAt());}
+ private String priority(String v){String x=(v==null?"MEDIUM":v).trim().toUpperCase(Locale.ROOT);if(!x.matches("LOW|MEDIUM|HIGH"))throw new IllegalArgumentException("Invalid priority.");return x;}
+ private String status(String v){String x=v.trim().toUpperCase(Locale.ROOT);if(!x.matches("TODO|IN_PROGRESS|DONE"))throw new IllegalArgumentException("Invalid status.");return x;}
+ private String blank(String v){return v==null||v.isBlank()?null:v;}
+}

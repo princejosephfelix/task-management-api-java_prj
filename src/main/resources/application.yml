@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: task-management-api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5435/taskdb}
+    username: ${SPRING_DATASOURCE_USERNAME:taskapp}
+    password: ${SPRING_DATASOURCE_PASSWORD:taskapp123}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+server:
+  port: ${SERVER_PORT:8002}
+app:
+  jwt:
+    secret: ${JWT_SECRET:development-only-super-secret-key-change-this-to-a-long-random-value}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+    issuer: ${JWT_ISSUER:TaskManagementApi}
+    audience: ${JWT_AUDIENCE:TaskManagementApiClient}
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

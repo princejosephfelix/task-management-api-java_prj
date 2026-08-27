@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: task-management-postgres-java
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: taskapp
+      POSTGRES_PASSWORD: taskapp123
+    ports: ["5435:5432"]
+    volumes: ["task_management_postgres_java_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U taskapp -d taskdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build: .
+    container_name: task-management-api-java
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/taskdb
+      SPRING_DATASOURCE_USERNAME: taskapp
+      SPRING_DATASOURCE_PASSWORD: taskapp123
+      SERVER_PORT: 8002
+      JWT_SECRET: development-only-super-secret-key-change-this-to-a-long-random-value
+      JWT_EXPIRATION_MS: 3600000
+      JWT_ISSUER: TaskManagementApi
+      JWT_AUDIENCE: TaskManagementApiClient
+    ports: ["8002:8002"]
+volumes:
+  task_management_postgres_java_data:
