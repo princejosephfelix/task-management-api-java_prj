@@ -71,8 +71,8 @@ Bearer <access_token>
 ## Create task
 ```json
 {
-  "title": "Prepare for Interview",
-  "description": "Prepare for Job Interview on all topics",
+  "title": "title string",
+  "description": "title description",
   "priority": "HIGH"
 }
 ```
@@ -90,4 +90,3 @@ Bearer <access_token>
 | Auth | JWT | JWT | JWT |
 | Container | Docker | Docker | Docker |
 
-This is a learning/interview project. For production use, replace development secrets, add Flyway/Liquibase migrations, strengthen JWT key management, add refresh-token/key rotation, CORS policy, rate limiting, and comprehensive integration/security tests.
